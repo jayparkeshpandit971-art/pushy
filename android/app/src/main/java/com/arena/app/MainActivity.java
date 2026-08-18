@@ -8,15 +8,20 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null) {
-                String token = task.getResult();
-                getBridge().getWebView().evaluateJavascript(
-                    "window._nativeFcmToken = '" + token + "'; " +
-                    "if(window._onFcmToken) window._onFcmToken('" + token + "');",
-                    null
-                );
-            }
-        });
+
+        // FCM Token fetch karo aur WebView ko bhejo
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    String token = task.getResult();
+                    runOnUiThread(() -> {
+                        getBridge().getWebView().evaluateJavascript(
+                            "window._nativeFcmToken = '" + token + "';" +
+                            "if(typeof window._onFcmToken === 'function') { window._onFcmToken('" + token + "'); }",
+                            null
+                        );
+                    });
+                }
+            });
     }
 }
