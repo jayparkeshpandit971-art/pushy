@@ -1,0 +1,8 @@
+{
+	"appId": "com.arena.app",
+	"appName": "TournamentApp",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https"
+	}
+}
