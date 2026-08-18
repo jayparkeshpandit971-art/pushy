@@ -2794,5 +2794,72 @@ https://adixclash.wuaze.com/?i=1`;
          });
 </script>
 
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+const _fcmApp = initializeApp({
+  apiKey: "AIzaSyBo1bK5XeAWVdB005Z_98OMeXh0CXhdSLE",
+  authDomain: "ultiamterdt.firebaseapp.com",
+  databaseURL: "https://ultiamterdt-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ultiamterdt",
+  storageBucket: "ultiamterdt.firebasestorage.app",
+  messagingSenderId: "1005368296850",
+  appId: "1:1005368296850:web:c090db95774f30b63c6d4b"
+}, "fcm-instance");
+
+const _fcmMsg  = getMessaging(_fcmApp);
+const _fcmDb   = getDatabase(_fcmApp);
+const _fcmAuth = getAuth(_fcmApp);
+const VAPID_KEY = "BP2cMYY7U9O9tvwKNTnn3yJX7eF110ZBiShbb6kimo3o5_Fu7sCQue0eb0eanhqVyWEhQi-iCLXinf94WcsIais";
+
+async function _fcmSetup(uid) {
+  try {
+    const sw = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    const token = await getToken(_fcmMsg, { vapidKey: VAPID_KEY, serviceWorkerRegistration: sw });
+    if (token) {
+      await set(ref(_fcmDb, "fcmTokens/" + token), { userId: uid, updatedAt: Date.now() });
+      await set(ref(_fcmDb, "users/" + uid + "/fcmToken"), token);
+      console.log("FCM token saved!");
+    }
+  } catch(e) { console.warn("FCM setup error:", e); }
+}
+
+onAuthStateChanged(_fcmAuth, user => {
+  if (user) {
+    Notification.requestPermission().then(p => {
+      if (p === "granted") _fcmSetup(user.uid);
+    });
+  }
+});
+
+onMessage(_fcmMsg, payload => {
+  const d = payload.data || {};
+  const title = d.title || payload.notification?.title || "New Tournament!";
+  const body  = d.body  || payload.notification?.body  || "";
+  const image = d.image || "";
+  const roomId   = d.roomId || "";
+  const roomPass = d.roomPassword || "";
+
+  const old = document.getElementById("_fcm_toast");
+  if (old) old.remove();
+
+  const t = document.createElement("div");
+  t.id = "_fcm_toast";
+  t.style.cssText = "position:fixed;top:70px;left:10px;right:10px;background:linear-gradient(135deg,#1E203B,#0F102A);border:1px solid #F8C015;border-radius:12px;padding:12px;z-index:99999;box-shadow:0 4px 20px rgba(248,192,21,0.3);display:flex;gap:12px;align-items:flex-start;cursor:pointer;";
+  t.innerHTML = (image ? "<img src='" + image + "' style='width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;' onerror='this.style.display=\"none\"'>" : "")
+    + "<div style='flex-grow:1'>"
+    + "<div style='font-weight:700;color:#E2E8F0;font-size:0.95rem;'>" + title + "</div>"
+    + "<div style='color:#94A3B8;font-size:0.85rem;margin-top:3px;'>" + body + "</div>"
+    + (roomId ? "<div style='margin-top:6px;font-size:0.85rem;color:#F8C015;'>🔑 Room ID: <b>" + roomId + "</b> &nbsp;🔒 Pass: <b>" + roomPass + "</b></div>" : "")
+    + "</div>"
+    + "<button onclick='document.getElementById("_fcm_toast").remove()' style='background:none;border:none;color:#94A3B8;font-size:1.4rem;padding:0;flex-shrink:0;'>×</button>";
+  document.body.appendChild(t);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+});
+</script>
 </body>
 </html>
