@@ -1,13 +1,8 @@
 {
   "appId": "com.arena.app",
   "appName": "TournamentApp",
-  "webDir": ".",
+  "webDir": "www",
   "server": {
     "androidScheme": "https"
-  },
-  "plugins": {
-    "PushNotifications": {
-      "presentationOptions": ["badge", "sound", "alert"]
-    }
   }
 }
