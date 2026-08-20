@@ -1,0 +1,11 @@
+{
+  "name": "Pushy Codespace",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "postCreateCommand": "apt-get update && apt-get install -y openjdk-17-jdk wget unzip gradle",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-vscode.cpptools", "vscjava.vscode-java-pack"]
+    }
+  }
+}
